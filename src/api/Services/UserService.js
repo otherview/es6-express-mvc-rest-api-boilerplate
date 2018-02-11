@@ -1,11 +1,12 @@
 const httpStatus = require('http-status');
 const shortid = require('shortid');
 const ServiceException = require('../Models/Exceptions/ServiceException');
-const { UserModel } = require('../Models/UserModel');
-
 const RepositoryFactoryService = require('./RepositoryFactoryService');
+const APIError = require('../Helpers/APIError');
+const ErrorHandler = require('./ErrorHandler');
+
 class UserService {
-  constructor(){
+  constructor() {
     const repoFactory = new RepositoryFactoryService();
     this.repository = repoFactory.create();
   }
@@ -15,9 +16,16 @@ class UserService {
    * @param userId
    * @returns {UserModel}
    */
-  async getUserById(userId){
-    console.log("findById");
-    return await this.repository.getUserById(userId);
+  async getUserById(userId) {
+    try {
+      const user = await this.repository.getUserById(userId);
+      if (user) {
+        return user;
+      }
+      return undefined;
+    } catch (error) {
+      return ErrorHandler.handle(error);
+    }
   }
 
   /**
@@ -25,30 +33,30 @@ class UserService {
    * @returns {List<UserModel>}
    */
   async listUsers() {
-    console.log("listUsers");
-    return await this.repository.listUsers();
-  };
+    return this.repository.listUsers();
+  }
 
   /**
    * Creates a new User
-   * @param UserModel
    * @returns {UserModel}
+   * @param user
    */
   async createUser(user) {
+    const createUser = user;
 
     // We control the ids
-    if (user.id !== undefined){
-      throw new ServiceException({message: "User as specified an Id."});
+    if (createUser.id !== undefined) {
+      throw new ServiceException({ message: 'User as specified an Id.' });
     }
-    user.id = shortid.generate();
+    createUser.id = shortid.generate();
 
     // No Email dups
-    if (await this.repository.isEmailDuplicate(user.email)){
-      throw new ServiceException({message: "User already exists"});
+    if (await this.repository.isEmailDuplicate(createUser.email)) {
+      throw new ServiceException({ message: 'User already exists' });
     }
 
-    return await this.repository.saveUser(user);
-  };
+    return this.repository.saveUser(createUser);
+  }
 
   /**
    * Saves a userJson to DB
@@ -56,17 +64,19 @@ class UserService {
    * @returns {UserModel}
    */
   async saveUser(user) {
-    return await this.repository.saveUser(user);
-  };
+    return this.repository.saveUser(user);
+  }
 
   /**
    * Deletes a User from the DB
    * @param userId
    */
   async deleteUserById(userId) {
-    await this.repository.deleteUser(userId);
-    return;
-  };
+    if (await this.repository.deleteUser(userId)) {
+      return true;
+    }
+    return false;
+  }
 
   /**
    * Find user by email and tries to generate a JWT token
@@ -95,7 +105,7 @@ class UserService {
     }
     throw new APIError(err);
   }
-};
+}
 
 
 module.exports = UserService;

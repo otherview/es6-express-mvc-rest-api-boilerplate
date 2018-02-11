@@ -24,12 +24,4 @@ module.exports = {
       access_token: Joi.string().required(),
     },
   },
-
-  // POST /v1/auth/refresh
-  refresh: {
-    body: {
-      email: Joi.string().email().required(),
-      refreshToken: Joi.string().required(),
-    },
-  },
 };

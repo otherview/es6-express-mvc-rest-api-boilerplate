@@ -55,4 +55,9 @@ app.use(error.notFound);
 // error handler, send stacktrace only during development
 app.use(error.handler);
 
+app.use((req, res, next) => {
+  req.connection.setNoDelay(true);
+  next();
+});
+
 module.exports = app;

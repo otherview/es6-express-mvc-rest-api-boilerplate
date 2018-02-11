@@ -1,7 +1,7 @@
 const moment = require('moment-timezone');
 const jwt = require('jwt-simple');
 const bcrypt = require('bcryptjs');
-const { env, jwtSecret, jwtExpirationInterval } = require('../../Configs/vars');
+const { jwtSecret, jwtExpirationInterval } = require('../../Configs/vars');
 
 class UserModel {
   constructor(options) {
@@ -12,8 +12,7 @@ class UserModel {
   }
 
   async passwordMatches(password) {
-    const derp =  await bcrypt.compare(password, this.password);
-    return  derp;
+    return bcrypt.compare(password, this.password);
   }
 
   token() {
