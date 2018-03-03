@@ -6,7 +6,7 @@ const {
   listUsers,
   createUser,
   deleteUser,
-} = require('../../validations/user.validation');
+} = require('../../Validations/user.validation');
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ router
    * @apiGroup User
    * @apiPermission admin
    *
-   * @apiHeader {String} Athorization  User's access token
+   * @apiHeader {String} Authorization  User's access token
    *
    * @apiParam  {Number{1-}}         [page=1]     List page
    * @apiParam  {Number{1-100}}      [perPage=1]  Users per page
@@ -34,6 +34,7 @@ router
    * @apiError (Forbidden 403)     Forbidden     Only admins can access the data
    */
   .get(authorize(ADMIN), validate(listUsers), controller.list)
+
   /**
    * @api {post} v1/users Create User
    * @apiDescription Create a new user
@@ -42,7 +43,7 @@ router
    * @apiGroup User
    * @apiPermission admin
    *
-   * @apiHeader {String} Athorization  User's access token
+   * @apiHeader {String} Authorization  User's access token
    *
    * @apiParam  {String}             email     User's email
    * @apiParam  {String{6..128}}     password  User's password
@@ -71,7 +72,7 @@ router
    * @apiGroup User
    * @apiPermission user
    *
-   * @apiHeader {String} Athorization  User's access token
+   * @apiHeader {String} Authorization  User's access token
    *
    * @apiSuccess {String}  id         User's id
    * @apiSuccess {String}  name       User's name
@@ -85,34 +86,6 @@ router
    */
   .get(authorize(LOGGED_USER), controller.get)
 
-  // /**
-  //  * @api {patch} v1/users/:id Update User
-  //  * @apiDescription Update some fields of a user document
-  //  * @apiVersion 1.0.0
-  //  * @apiName UpdateUser
-  //  * @apiGroup User
-  //  * @apiPermission user
-  //  *
-  //  * @apiHeader {String} Athorization  User's access token
-  //  *
-  //  * @apiParam  {String}             email     User's email
-  //  * @apiParam  {String{6..128}}     password  User's password
-  //  * @apiParam  {String{..128}}      [name]    User's name
-  //  * @apiParam  {String=user,admin}  [role]    User's role
-  //  * (You must be an admin to change the user's role)
-  //  *
-  //  * @apiSuccess {String}  id         User's id
-  //  * @apiSuccess {String}  name       User's name
-  //  * @apiSuccess {String}  email      User's email
-  //  * @apiSuccess {String}  role       User's role
-  //  * @apiSuccess {Date}    createdAt  Timestamp
-  //  *
-  //  * @apiError (Bad Request 400)  ValidationError  Some parameters may contain invalid values
-  //  * @apiError (Unauthorized 401) Unauthorized Only authenticated users can modify the data
-  //  * @apiError (Forbidden 403)    Forbidden
-  //  * @apiError (Not Found 404)    NotFound     User does not exist
-  //  */
-  // .patch(authorize(LOGGED_USER), validate(updateUser), controller.update)
 
   /**
    * @api {patch} v1/users/:id Delete User
@@ -122,7 +95,7 @@ router
    * @apiGroup User
    * @apiPermission user
    *
-   * @apiHeader {String} Athorization  User's access token
+   * @apiHeader {String} Authorization  User's access token
    *
    * @apiSuccess (No Content 204)  Successfully deleted
    *

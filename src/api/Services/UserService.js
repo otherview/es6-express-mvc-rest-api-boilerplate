@@ -60,8 +60,8 @@ class UserService {
 
   /**
    * Saves a userJson to DB
-   * @param UserModel
    * @returns {UserModel}
+   * @param user
    */
   async saveUser(user) {
     return this.repository.saveUser(user);
@@ -72,17 +72,14 @@ class UserService {
    * @param userId
    */
   async deleteUserById(userId) {
-    if (await this.repository.deleteUser(userId)) {
-      return true;
-    }
-    return false;
+    return this.repository.deleteUser(userId);
   }
 
   /**
    * Find user by email and tries to generate a JWT token
    *
-   * @param {ObjectId} id - The objectId of user.
    * @returns {Promise<User, APIError>}
+   * @param options
    */
   async findUserAndGenerateToken(options) {
     const { email, password, refreshObject } = options;

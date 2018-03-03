@@ -9,7 +9,7 @@ exports.login = async (req, res, next) => {
   try {
     const userService = new UserService();
     const { user, accessToken } = await userService.findUserAndGenerateToken(req.body);
-    const token = TokenService.generateTokenResponse(user, accessToken);
+    const token = TokenService.generateTokenResponse(accessToken);
     const userTransformed = user.transform();
     return res.json({ token, user: userTransformed });
   } catch (error) {

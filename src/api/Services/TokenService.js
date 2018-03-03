@@ -14,9 +14,9 @@ const TokenService = {
 
   /**
  * Returns a formated object with tokens
- * @private
+ * @public
  */
-  generateTokenResponse(user, accessToken) {
+  generateTokenResponse(accessToken) {
     const tokenType = 'Bearer';
     const expiresIn = moment().add(jwtExpirationInterval, 'minutes');
     return {

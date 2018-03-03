@@ -3,7 +3,7 @@ const chaiHttp = require('chai-http');
 const MockConfigs = require('../assets/Configs');
 
 chai.use(chaiHttp);
-const expect = chai.expect; // we are using the "expect" style of Chai
+const expect = chai.expect;
 
 describe('Basic Authentication tests', () => {
   it('Should be able to auth to get a JWT', (done) => {

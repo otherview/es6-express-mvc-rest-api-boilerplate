@@ -45,9 +45,6 @@ class MockedRepo {
   async isEmailDuplicate(userEmail) {
     return this.MockedData.some(el => el.email === userEmail);
   }
-  async userIdExists(id) {
-    return this.MockedData.some(el => el.id === id);
-  }
 
   async deleteUser(id) {
     const index = this.MockedData.indexOf(this.MockedData.find(el => el.id === id));

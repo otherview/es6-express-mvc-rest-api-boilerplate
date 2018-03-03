@@ -1,20 +1,21 @@
-// const request = require('supertest');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const httpStatus = require('http-status');
 const MockConfigs = require('../assets/Configs');
-// const app = require('../../index');
 
 const expect = chai.expect;
 chai.use(chaiHttp);
 
-describe('Basic User Tests - Create, List, Get, Delete', () => {
+describe('Basic User Tests - Create', () => {
   const closure = {};
 
-  it('Auth: Should be able to auth to get a JWT', (done) => {
+  // Auth to get a JWT
+  it('Auth user', (done) => {
+    const user = { email: 'derp@derpmail.com', password: 'derp2' };
+
     chai.request(MockConfigs.Url)
       .post('/v1/auth/login')
-      .send({ email: 'derp@derpmail.com', password: 'derp2' })
+      .send(user)
       .end((err, result) => {
         expect(result).to.have.status(200);
 
@@ -27,45 +28,14 @@ describe('Basic User Tests - Create, List, Get, Delete', () => {
       });
   });
 
-  it('User.List: Should be able to list Users', (done) => {
-    chai.request(MockConfigs.Url)
-      .get('/v1/users')
-      .set('Authorization', closure.authToken)
-      .end((err, result) => {
-        expect(result).to.have.status(200);
-
-        done();
-      });
-  });
-
   it('User.Create: Should be able to create a new user', (done) => {
+    const user = { email: 'newUser@gmail.com', password: 'stuff', role: 'admin' };
     chai.request(MockConfigs.Url)
       .post('/v1/users')
       .set('Authorization', closure.authToken)
-      .send({ email: 'newUser@gmail.com', password: 'stuff', role: 'admin' })
+      .send(user)
       .end((err, result) => {
         expect(result).to.have.status(httpStatus.OK);
-        closure.CreatedUserId = result.body.id;
-        done();
-      });
-    // request(app)
-    //   .post('/v1/users')
-    //   .set('Authorization', closure.authToken)
-    //   .send({ email: 'newUser@gmail.com', password: 'stuff', role: 'admin' })
-    //   .expect(httpStatus.OK)
-    //   .then((res) => {
-    //     console.log(res);
-    //   });
-  });
-
-  it('User.Get: Should be able to Get the newly created a new user', (done) => {
-    const requestUrl = `/v1/users/${closure.CreatedUserId}`;
-    chai.request(MockConfigs.Url)
-      .get(requestUrl)
-      .set('Authorization', closure.authToken)
-      .end((err, result) => {
-        expect(result).to.have.status(httpStatus.OK);
-        expect(result.body.email).to.equal('newUser@gmail.com');
         closure.CreatedUserId = result.body.id;
         done();
       });
@@ -97,39 +67,256 @@ describe('Basic User Tests - Create, List, Get, Delete', () => {
       });
   });
 
-  it('User.Delete: Should be able to delete a user using the Id', (done) => {
-    const requestUrl = `/v1/users/${closure.CreatedUserId}`;
-
+  // Delete created User
+  it('Delete user', (done) => {
     chai.request(MockConfigs.Url)
-      .delete(requestUrl)
+      .delete(`/v1/users/${closure.CreatedUserId}`)
       .set('Authorization', closure.authToken)
       .end((err, result) => {
         expect(result).to.have.status(httpStatus.OK);
+        done();
+      });
+  });
+});
+
+describe('Basic User Tests - Get', () => {
+  const closure = {};
+
+  // Auth to get a JWT
+  it('Auth user', (done) => {
+    const authUser = { email: 'derp@derpmail.com', password: 'derp2' };
+
+    chai.request(MockConfigs.Url)
+      .post('/v1/auth/login')
+      .send(authUser)
+      .end((err, result) => {
+        expect(result).to.have.status(200);
+
+        closure.tokenType = result.body.token.tokenType;
+        closure.accessToken = result.body.token.accessToken;
+        closure.authToken = `${closure.tokenType} ${closure.accessToken}`;
+        closure.expiryToken = result.body.token.expiryToken;
 
         done();
       });
   });
 
-  it('User.Delete: Should NOT be able to delete a non existing user using the Id', (done) => {
+  it('Create User', (done) => {
+    const newUser = { email: 'newUser@gmail.com', password: 'stuff', role: 'admin' };
+    chai.request(MockConfigs.Url)
+      .post('/v1/users')
+      .set('Authorization', closure.authToken)
+      .send(newUser)
+      .end((err, result) => {
+        expect(result).to.have.status(httpStatus.OK);
+        closure.CreatedUserId = result.body.id;
+        done();
+      });
+  });
+
+  it('User.List: Should be able to list Users', (done) => {
+    chai.request(MockConfigs.Url)
+      .get('/v1/users')
+      .set('Authorization', closure.authToken)
+      .end((err, result) => {
+        expect(result).to.have.status(200);
+
+        done();
+      });
+  });
+
+  it('User.Get: Should be able to Get a existing User', (done) => {
     const requestUrl = `/v1/users/${closure.CreatedUserId}`;
-
     chai.request(MockConfigs.Url)
-      .delete(requestUrl)
+      .get(requestUrl)
       .set('Authorization', closure.authToken)
       .end((err, result) => {
-        expect(result).to.have.status(httpStatus.NOT_FOUND);
+        expect(result).to.have.status(httpStatus.OK);
+        expect(result.body.email).to.equal('newUser@gmail.com');
+        closure.CreatedUserId = result.body.id;
+        done();
+      });
+  });
+
+  it('User.Get: Should NOT be able to Get a NON-existing User', (done) => {
+    const requestUrl = `/v1/users/${closure.CreatedUserId}`;
+    chai.request(MockConfigs.Url)
+      .get(requestUrl)
+      .set('Authorization', closure.authToken)
+      .end((err, result) => {
+        expect(result).to.have.status(httpStatus.OK);
+        expect(result.body.email).to.equal('newUser@gmail.com');
+        closure.CreatedUserId = result.body.id;
+        done();
+      });
+  });
+
+  // Delete created User
+  it('Delete user', (done) => {
+    chai.request(MockConfigs.Url)
+      .delete(`/v1/users/${closure.CreatedUserId}`)
+      .set('Authorization', closure.authToken)
+      .end((err, result) => {
+        expect(result).to.have.status(httpStatus.OK);
+        done();
+      });
+  });
+});
+
+describe('Basic User Tests - Update', () => {
+  const closure = {};
+
+  it('Auth user', (done) => {
+    const authUser = { email: 'derp@derpmail.com', password: 'derp2' };
+
+    chai.request(MockConfigs.Url)
+      .post('/v1/auth/login')
+      .send(authUser)
+      .end((err, result) => {
+        expect(result).to.have.status(200);
+
+        closure.tokenType = result.body.token.tokenType;
+        closure.accessToken = result.body.token.accessToken;
+        closure.authToken = `${closure.tokenType} ${closure.accessToken}`;
+        closure.expiryToken = result.body.token.expiryToken;
 
         done();
       });
   });
 
-  it('User.Delete: Should fail if no Id provided', (done) => {
+  it('Create User', (done) => {
+    const newUser = { email: 'newUser@gmail.com', password: 'stuff', role: 'admin' };
     chai.request(MockConfigs.Url)
-      .delete('/v1/users/ ')
+      .post('/v1/users')
+      .set('Authorization', closure.authToken)
+      .send(newUser)
+      .end((err, result) => {
+        expect(result).to.have.status(httpStatus.OK);
+        closure.CreatedUserId = result.body.id;
+        done();
+      });
+  });
+
+  it('User.Get: Should be able to Get a existing User', (done) => {
+    const requestUrl = `/v1/users/${closure.CreatedUserId}`;
+    chai.request(MockConfigs.Url)
+      .get(requestUrl)
       .set('Authorization', closure.authToken)
       .end((err, result) => {
-        expect(result).to.have.status(httpStatus.NOT_FOUND);
+        expect(result).to.have.status(httpStatus.OK);
+        expect(result.body.email).to.equal('newUser@gmail.com');
+        closure.CreatedUserId = result.body.id;
+        done();
+      });
+  });
 
+  it('User.Update: Should be able to Update a existing User', (done) => {
+    const requestUrl = `/v1/users/${closure.CreatedUserId}`;
+    chai.request(MockConfigs.Url)
+      .get(requestUrl)
+      .set('Authorization', closure.authToken)
+      .end((err, result) => {
+        expect(result).to.have.status(httpStatus.OK);
+        expect(result.body.email).to.equal('newUser@gmail.com');
+        closure.CreatedUserId = result.body.id;
+        done();
+      });
+  });
+
+  it('User.Update: Should NOT be able to Update static fields of an existing User', (done) => {
+    const requestUrl = `/v1/users/${closure.CreatedUserId}`;
+    chai.request(MockConfigs.Url)
+      .get(requestUrl)
+      .set('Authorization', closure.authToken)
+      .end((err, result) => {
+        expect(result).to.have.status(httpStatus.OK);
+        expect(result.body.email).to.equal('newUser@gmail.com');
+        closure.CreatedUserId = result.body.id;
+        done();
+      });
+  });
+
+  it('User.Update: Should NOT be able to Update a NON-existing User', (done) => {
+    const requestUrl = `/v1/users/${closure.CreatedUserId}`;
+    chai.request(MockConfigs.Url)
+      .get(requestUrl)
+      .set('Authorization', closure.authToken)
+      .end((err, result) => {
+        expect(result).to.have.status(httpStatus.OK);
+        expect(result.body.email).to.equal('newUser@gmail.com');
+        closure.CreatedUserId = result.body.id;
+        done();
+      });
+  });
+
+  // Delete created User
+  it('Delete user', (done) => {
+    chai.request(MockConfigs.Url)
+      .delete(`/v1/users/${closure.CreatedUserId}`)
+      .set('Authorization', closure.authToken)
+      .end((err, result) => {
+        expect(result).to.have.status(httpStatus.OK);
+        done();
+      });
+  });
+});
+
+describe('Basic User Tests - Delete', () => {
+  const closure = {};
+
+  it('Auth user', (done) => {
+    const authUser = { email: 'derp@derpmail.com', password: 'derp2' };
+
+    chai.request(MockConfigs.Url)
+      .post('/v1/auth/login')
+      .send(authUser)
+      .end((err, result) => {
+        expect(result).to.have.status(200);
+
+        closure.tokenType = result.body.token.tokenType;
+        closure.accessToken = result.body.token.accessToken;
+        closure.authToken = `${closure.tokenType} ${closure.accessToken}`;
+        closure.expiryToken = result.body.token.expiryToken;
+
+        done();
+      });
+  });
+
+  it('Create User', (done) => {
+    const newUser = { email: 'newUser@gmail.com', password: 'stuff', role: 'admin' };
+    chai.request(MockConfigs.Url)
+      .post('/v1/users')
+      .set('Authorization', closure.authToken)
+      .send(newUser)
+      .end((err, result) => {
+        expect(result).to.have.status(httpStatus.OK);
+        closure.CreatedUserId = result.body.id;
+        done();
+      });
+  });
+
+  it('User.Delete: Should be able to Delete an existing User', (done) => {
+    const requestUrl = `/v1/users/${closure.CreatedUserId}`;
+    chai.request(MockConfigs.Url)
+      .get(requestUrl)
+      .set('Authorization', closure.authToken)
+      .end((err, result) => {
+        expect(result).to.have.status(httpStatus.OK);
+        expect(result.body.email).to.equal('newUser@gmail.com');
+        closure.CreatedUserId = result.body.id;
+        done();
+      });
+  });
+
+  it('User.Delete: Should NOT be able to Delete a NON-existing User', (done) => {
+    const requestUrl = `/v1/users/${closure.CreatedUserId}`;
+    chai.request(MockConfigs.Url)
+      .get(requestUrl)
+      .set('Authorization', closure.authToken)
+      .end((err, result) => {
+        expect(result).to.have.status(httpStatus.OK);
+        expect(result.body.email).to.equal('newUser@gmail.com');
+        closure.CreatedUserId = result.body.id;
         done();
       });
   });
