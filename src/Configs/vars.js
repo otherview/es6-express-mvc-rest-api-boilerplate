@@ -16,5 +16,10 @@ module.exports = {
       ? process.env.MONGO_URI_TESTS
       : process.env.MONGO_URI,
   },
+  repository: {
+    uri: process.env.NODE_ENV === 'test'
+      ? process.env.MOCKED_REPO
+      : process.env.ELASTIC_URI,
+  },
   logs: process.env.NODE_ENV === 'production' ? 'combined' : 'dev',
 };

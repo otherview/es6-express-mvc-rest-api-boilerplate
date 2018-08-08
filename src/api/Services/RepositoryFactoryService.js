@@ -1,5 +1,7 @@
 const MockedRepo = require('../Repositories/MockedRepo');
 const ElasticSearchRepo = require('../Repositories/ElasticSearchRepo');
+const { env } = require('../../Configs/vars');
+
 
 // Define a skeleton Repository factory
 class RepositoryFactoryService {
@@ -9,12 +11,12 @@ class RepositoryFactoryService {
   }
 
   // Our Factory method for creating new Repo instances
-  create(options) {
-    switch (options) {
-      case 'Mocked':
+  create() {
+    switch (env) {
+      case 'test':
         this.RepoClass = MockedRepo;
         break;
-      case 'Elastic':
+      case 'prod':
         this.RepoClass = ElasticSearchRepo;
         break;
       default:
