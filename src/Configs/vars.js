@@ -11,15 +11,13 @@ module.exports = {
   port: process.env.PORT,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpirationInterval: process.env.JWT_EXPIRATION_MINUTES,
-  mongo: {
-    uri: process.env.NODE_ENV === 'test'
-      ? process.env.MONGO_URI_TESTS
-      : process.env.MONGO_URI,
-  },
   repository: {
-    uri: process.env.NODE_ENV === 'test'
-      ? process.env.MOCKED_REPO
+    uri: process.env.NODE_ENV === 'prod'
+      ? process.env.ELASTIC_URI
       : process.env.ELASTIC_URI,
+    usersIndex: process.env.NODE_ENV === 'prod'
+      ? process.env.ELASTIC_USER_INDEX
+      : process.env.ELASTIC_USER_INDEX_TEST,
   },
   logs: process.env.NODE_ENV === 'production' ? 'combined' : 'dev',
 };

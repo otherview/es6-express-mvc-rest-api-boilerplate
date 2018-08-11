@@ -20,23 +20,42 @@ class ElasticRepo {
   }
 
   async getUserByEmail(email) {
-    const user = await this.client.get({
-      index: 'users',
+    const result = await this.client.search({
+      index: repository.usersIndex,
       type: 'docs',
-      id: email,
+      filterPath: ['hits.hits._source'],
+      body: {
+        query: {
+          term: {
+            email,
+          },
+        },
+      },
     });
-    if (user) {
+
+    const user = (((((result || {}).hits || {}).hits || {})[0] || {})._source || {});
+    if (user !== {}) {
       return new UserModel(user);
     }
     throw new ServiceException('User does not Exist');
   }
 
   async getUserById(id) {
-    const user = this.MockedData.find(element => element.id === id);
-    if (user) {
-      return new UserModel(user);
+    let user;
+    try {
+      const result = await this.client.get({
+        index: repository.usersIndex,
+        type: 'docs',
+        id,
+      });
+      if (result._source) {
+        user = UserModel(result._source);
+      }
+    } catch (error) {
+      // TODO: Figure out the how to log these
+      // throw new ServiceException('User does not exist');
     }
-    return undefined;
+    return user;
   }
 
   async listUsers() {
@@ -44,8 +63,17 @@ class ElasticRepo {
   }
 
   async saveUser(user) {
-    this.MockedData.push(user);
-    return user;
+    const result = await this.client.index({
+      index: repository.usersIndex,
+      type: 'docs',
+      body: user,
+    });
+
+    const userResult = (((((result || {}).hits || {}).hits || {})[0] || {})._source || {});
+    if (userResult !== {}) {
+      return user;
+    }
+    throw new ServiceException('User could not be created');
   }
 
   async isEmailDuplicate(userEmail) {

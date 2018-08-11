@@ -15,6 +15,16 @@ fi
 echo "Deleting $index index"
 curl -XDELETE $host/$index?pretty
 
+echo "Deleting test_$index index"
+curl -XDELETE $host/test_$index?pretty
+
 echo "Creating $index index"
 curl -XPUT $host/$index?pretty --header 'Content-Type: application/json' -d @$index_file
+
+echo "Creating test_$index index"
+curl -XPUT $host/test_$index?pretty --header 'Content-Type: application/json' -d @$index_file
+
+echo "Adding users_test_dataset data to test_$index"
+curl -XPUT $host/test_$index/docs/123?pretty --header 'Content-Type: application/json' -d @../../src/Tests/assets/users_test_dataset.json
+
 

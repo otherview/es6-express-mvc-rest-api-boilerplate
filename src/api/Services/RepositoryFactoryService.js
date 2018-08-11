@@ -16,6 +16,7 @@ class RepositoryFactoryService {
       case 'test':
         this.RepoClass = MockedRepo;
         break;
+      case 'staging':
       case 'prod':
         this.RepoClass = ElasticSearchRepo;
         break;

@@ -4,5 +4,23 @@
             "number_of_shards" : 1, 
             "number_of_replicas" : 0 
         }
+    },
+    "mappings": {
+        "docs": {
+            "properties": {
+                "email": {
+                    "type": "keyword"
+                },
+                "id": {
+                    "type": "long"
+                },
+                "password": {
+                    "type": "keyword"
+                },
+                "role": {
+                    "type": "keyword"
+                }
+            }
+        }
     }
 }
