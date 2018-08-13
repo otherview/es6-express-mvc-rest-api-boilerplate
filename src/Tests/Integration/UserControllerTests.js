@@ -22,7 +22,7 @@ describe('Basic User Tests - Create', () => {
         closure.tokenType = result.body.token.tokenType;
         closure.accessToken = result.body.token.accessToken;
         closure.authToken = `${closure.tokenType} ${closure.accessToken}`;
-        closure.expiryToken = result.body.token.expiryToken;
+        closure.expiryToken = result.body.token.expiresIn;
 
         done();
       });
@@ -298,12 +298,10 @@ describe('Basic User Tests - Delete', () => {
   it('User.Delete: Should be able to Delete an existing User', (done) => {
     const requestUrl = `/v1/users/${closure.CreatedUserId}`;
     chai.request(MockConfigs.Url)
-      .get(requestUrl)
+      .delete(requestUrl)
       .set('Authorization', closure.authToken)
       .end((err, result) => {
         expect(result).to.have.status(httpStatus.OK);
-        expect(result.body.email).to.equal('newUser@gmail.com');
-        closure.CreatedUserId = result.body.id;
         done();
       });
   });
@@ -311,12 +309,10 @@ describe('Basic User Tests - Delete', () => {
   it('User.Delete: Should NOT be able to Delete a NON-existing User', (done) => {
     const requestUrl = `/v1/users/${closure.CreatedUserId}`;
     chai.request(MockConfigs.Url)
-      .get(requestUrl)
+      .delete(requestUrl)
       .set('Authorization', closure.authToken)
       .end((err, result) => {
-        expect(result).to.have.status(httpStatus.OK);
-        expect(result.body.email).to.equal('newUser@gmail.com');
-        closure.CreatedUserId = result.body.id;
+        expect(result).to.have.status(httpStatus.NOT_FOUND);
         done();
       });
   });

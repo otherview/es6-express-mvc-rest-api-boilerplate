@@ -9,6 +9,7 @@ class UserModel {
     this.email = options.email || undefined;
     this.password = options.password || undefined;
     this.role = options.role || undefined;
+    this.status = options.status || undefined;
   }
 
   async passwordMatches(password) {

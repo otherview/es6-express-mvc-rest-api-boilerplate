@@ -12,7 +12,7 @@
                     "type": "keyword"
                 },
                 "id": {
-                    "type": "long"
+                    "type": "keyword"
                 },
                 "password": {
                     "type": "keyword"

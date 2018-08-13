@@ -13,7 +13,7 @@ class ElasticRepo {
       instance = this;
       instance.client = new elastic.Client({
         host: repository.uri,
-        log: 'trace',
+        log: 'debug',
       });
     }
     return instance;
@@ -49,45 +49,97 @@ class ElasticRepo {
         id,
       });
       if (result._source) {
-        user = UserModel(result._source);
+        user = new UserModel(result._source);
       }
     } catch (error) {
       // TODO: Figure out the how to log these
       // throw new ServiceException('User does not exist');
+      console.log('can find user');
     }
     return user;
   }
 
   async listUsers() {
-    return this.MockedData.map(user => new UserModel(user));
+    console.log('\n\n\n-------User.List: Should be able to list Users -------------------------------------------------\n\n');
+    const users = [];
+    try {
+      const result = await this.client.search({
+        index: repository.usersIndex,
+        type: 'docs',
+      });
+
+      const userResult = (((result || {}).hits || {}).hits || {});
+      if (userResult !== {}) {
+        userResult.forEach((usr) => {
+          users.push(new UserModel(usr));
+        });
+      }
+    } catch (error) {
+      // TODO: Figure out the how to log these
+      // throw new ServiceException('User does not exist');
+      console.log('cant find user');
+    }
+    return users;
   }
 
   async saveUser(user) {
+    console.log('\n\n\n-------Basic User Tests - Get -------------------------------------------------\n\n');
     const result = await this.client.index({
+      refresh: 'wait_for',
       index: repository.usersIndex,
       type: 'docs',
+      id: user.id,
       body: user,
     });
 
-    const userResult = (((((result || {}).hits || {}).hits || {})[0] || {})._source || {});
-    if (userResult !== {}) {
+    if (result && result.result === 'created') {
       return user;
     }
     throw new ServiceException('User could not be created');
   }
 
   async isEmailDuplicate(userEmail) {
-    return this.MockedData.some(el => el.email === userEmail);
+    let isEmailDuplicate = true;
+    try {
+      const result = await this.client.count({
+        index: repository.usersIndex,
+        type: 'docs',
+        body: {
+          query: {
+            term: {
+              email: userEmail,
+            },
+          },
+        },
+      });
+      if (result.count !== undefined) {
+        isEmailDuplicate = result.count >= 1;
+      }
+    } catch (error) {
+      // TODO: Figure out the how to log these
+      // throw new ServiceException('User does not exist');
+      console.log('can find user');
+    }
+    return isEmailDuplicate;
   }
 
   async deleteUser(id) {
-    const index = this.MockedData.indexOf(this.MockedData.find(el => el.id === id));
-
-    if (index === -1) {
-      return undefined;
+    let deleted = false;
+    try {
+      const result = await this.client.delete({
+        index: repository.usersIndex,
+        refresh: 'wait_for',
+        type: 'docs',
+        id,
+      });
+      if (result && result.result === 'deleted') {
+        deleted = true;
+      }
+    } catch (error) {
+      // TODO: Figure out the how to log these
+      // throw new ServiceException('User does not exist');
     }
-    this.MockedData.splice(index, 1);
-    return true;
+    return deleted;
   }
 }
 
