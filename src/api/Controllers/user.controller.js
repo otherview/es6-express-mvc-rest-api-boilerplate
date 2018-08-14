@@ -10,7 +10,7 @@ const { UserModel } = require('../Models/UserModel');
  */
 exports.list = async (req, res, next) => {
   try {
-    const userService = new UserService();
+    const userService = new UserService(req.user);
     const users = await userService.listUsers(req.query);
     const transformedUsers = users.map(user => user.transform());
     res.json(transformedUsers);
@@ -18,21 +18,6 @@ exports.list = async (req, res, next) => {
     next(error);
   }
 };
-
-// /**
-//  * Load user and append to req.
-//  * @public
-//  */
-// exports.load = async (req, res, next, id) => {
-//   try {
-//     const userService = new UserService();
-//     const user = await userService.getUserById(id);
-//     req.locals = { user };
-//     return next();
-//   } catch (error) {
-//     return errorHandler(error, req, res);
-//   }
-// };
 
 /**
  * Get user
@@ -43,7 +28,7 @@ exports.get = async (req, res) => {
     if (!req.params || !req.params.userId) {
       throw new ServiceException('No UserId defined');
     }
-    const userService = new UserService();
+    const userService = new UserService(req.user);
     const user = await userService.getUserById(req.params.userId);
     if (user) {
       res.status(httpStatus.OK);
@@ -68,7 +53,7 @@ exports.loggedIn = (req, res) => res.json(req.user.transform());
  */
 exports.create = async (req, res, next) => {
   try {
-    const userService = new UserService();
+    const userService = new UserService(req.user);
     const user = new UserModel(req.body);
     const savedUser = await userService.createUser(user);
     res.status(httpStatus.OK);
@@ -78,19 +63,21 @@ exports.create = async (req, res, next) => {
   }
 };
 
-// /**
-//  * Update existing user
-//  * @public
-//  */
-// exports.update = (req, res, next) => {
-//   const ommitRole = req.locals.user.role !== 'admin' ? 'role' : '';
-//   const updatedUser = omit(req.body, ommitRole);
-//   const user = Object.assign(req.locals.user, updatedUser);
-//
-//   user.save()
-//     .then(savedUser => res.json(savedUser.transform()))
-//     .catch(e => next(User.checkDuplicateEmail(e)));
-// };
+/**
+ * Update existing user
+ * @public
+ */
+exports.update = async (req, res, next) => {
+  try {
+    const userService = new UserService(req.user);
+    const user = new UserModel(req.body);
+    const savedUser = await userService.updateUser(user);
+    res.status(httpStatus.OK);
+    return res.json(savedUser.transform());
+  } catch (error) {
+    return next(error);
+  }
+};
 
 /**
  * Delete user
@@ -101,7 +88,7 @@ exports.remove = async (req, res, next) => {
     if (!req.params || !req.params.userId) {
       throw new ServiceException('No UserId defined');
     }
-    const userService = new UserService();
+    const userService = new UserService(req.user);
     res.status(httpStatus.NOT_FOUND);
     if (await userService.deleteUserById(req.params.userId)) {
       res.status(httpStatus.OK);

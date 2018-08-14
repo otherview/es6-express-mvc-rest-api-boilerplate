@@ -6,9 +6,10 @@ const APIError = require('../Helpers/APIError');
 const ErrorHandler = require('./ErrorHandler');
 
 class UserService {
-  constructor() {
+  constructor(_loggedInUser) {
     const repoFactory = new RepositoryFactoryService();
     this.repository = repoFactory.create();
+    this._loggedInUser = _loggedInUser;
   }
 
   /**
@@ -19,6 +20,23 @@ class UserService {
   async getUserById(userId) {
     try {
       const user = await this.repository.getUserById(userId);
+      if (user) {
+        return user;
+      }
+      return undefined;
+    } catch (error) {
+      return ErrorHandler.handle(error);
+    }
+  }
+
+  /**
+   * Gets User By Email
+   * @param email
+   * @returns {UserModel}
+   */
+  async getUserByEmail(email) {
+    try {
+      const user = await this.repository.getUserByEmail(email);
       if (user) {
         return user;
       }
@@ -50,13 +68,42 @@ class UserService {
     }
     createUser.id = shortid.generate();
 
-    // No Email dups
+    // No Email duplicates
     if (await this.repository.isEmailDuplicate(createUser.email)) {
       throw new ServiceException({ message: 'User already exists' });
     }
 
     return this.repository.saveUser(createUser);
   }
+
+  /**
+   * Updates existing new User
+   * @returns {UserModel}
+   * @param user
+   */
+  async updateUser(user) {
+    const createUser = user;
+
+    // Must have Id and must exist
+    if (createUser.id === undefined) {
+      throw new ServiceException({ message: 'User has no Id.' });
+    }
+
+    const existingUser = this.repository.getUserById(user.id);
+
+    if (existingUser === undefined || existingUser.status === 'deleted') {
+      throw new ServiceException({ message: 'User is funky.' });
+    }
+
+    // Must have the same email and Id
+    if (existingUser.email !== this._loggedInUser.email
+    && existingUser.id !== this._loggedInUser.id) {
+      throw new ServiceException({ message: 'Existing and logged User dont match' });
+    }
+
+    return this.repository.saveUser(createUser);
+  }
+
 
   /**
    * Saves a userJson to DB
